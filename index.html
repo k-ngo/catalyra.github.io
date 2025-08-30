@@ -72,18 +72,9 @@
         }
 
         /* NEW: Blinking cursor animation */
-        .tagline::after {
-            content: '█';
-            animation: blink 1s step-end infinite;
-            position: absolute;
-            margin-left: 8px;
-        }
+        
 
-        @keyframes blink {
-            from, to { color: transparent; }
-            50% { color: #00e1ff; }
-        }
-
+        
         .subtitle {
             font-size: 1.1rem;
             font-weight: 300;
@@ -221,9 +212,6 @@
     <script type="module">
         import { createClient } from '@supabase/supabase-js';
         
-        // =================================================================
-        // STEP 1: SUPABASE URL AND ANON KEY HERE
-        // =================================================================
         const supabaseUrl = 'https://dwfpsaqvlomtldzaupsf.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZnBzYXF2bG9tdGxkemF1cHNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MzIxNDQsImV4cCI6MjA3MjEwODE0NH0.wYqEfTTirSckuTTl6mDCSijDVLwcEG9JCoQVtXzXiBM';
         // =================================================================
@@ -356,5 +344,6 @@
     </script>
 </body>
 </html>
+
 
 
