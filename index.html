@@ -26,7 +26,7 @@
             z-index: 1;
         }
 
-        /* Overlay Content - MOVED DOWN */
+        /* Overlay Content */
         .content {
             position: absolute;
             top: 65%; /* Pushed down to reveal the 3D object */
@@ -153,7 +153,6 @@
     <div id="scene-container"></div>
 
     <div class="content">
-        <!-- UPDATED: Title split into two lines with new style -->
         <h1>
             <span class="console-text catalyra-title">Catalyra</span><br>
             <span class="console-text tagline">Redefining Discovery</span>
@@ -167,43 +166,24 @@
         </div>
     </div>
 
-    <!-- Import Three.js Library -->
     <script type="importmap">
         {
             "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js"
+                "three": "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js",
+                "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm"
             }
         }
     </script>
 
-    <!-- Import Firebase JS SDK -->
+    <!-- SUPABASE & THREE.JS LOGIC -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { createClient } from '@supabase/supabase-js';
         
-        // =================================================================
-        // STEP 1: PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE
-        // =================================================================
-        const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_AUTH_DOMAIN",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_STORAGE_BUCKET",
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: "YOUR_APP_ID"
-        };
-        // =================================================================
+        const supabaseUrl = 'https://dwfpsaqvlomtldzaupsf.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3ZnBzYXF2bG9tdGxkemF1cHNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MzIxNDQsImV4cCI6MjA3MjEwODE0NH0.wYqEfTTirSckuTTl6mDCSijDVLwcEG9JCoQVtXzXiBM';
         
-        // Initialize Firebase Services
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // Sign in user anonymously to allow database writes
-        signInAnonymously(auth).catch((error) => {
-            console.error("Anonymous sign-in failed:", error);
-        });
+        // Initialize Supabase Client
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
         const formContainer = document.getElementById('form-container');
         const signupForm = document.getElementById('signupForm');
@@ -217,16 +197,20 @@
             submitButton.textContent = 'Submitting...';
 
             try {
-                // Add a new document with the email and a server-side timestamp
-                const docRef = await addDoc(collection(db, "subscribers"), {
-                    email: email,
-                    subscribedAt: serverTimestamp()
-                });
-                console.log("Document written with ID: ", docRef.id);
+                // Insert the new email into the 'subscribers' table
+                const { data, error } = await supabase
+                    .from('subscribers')
+                    .insert([
+                        { email: email },
+                    ]);
+                
+                if (error) throw error;
+
+                console.log("Data inserted: ", data);
                 // Show success message
                 formContainer.innerHTML = `<div class="form-message success">Thank you! You're on the list.</div>`;
             } catch (e) {
-                console.error("Error adding document: ", e);
+                console.error("Error adding subscriber: ", e);
                 // Show error message
                 formContainer.innerHTML = `<div class="form-message error">Something went wrong. Please try again.</div>`;
             }
@@ -240,7 +224,6 @@
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        // UPDATED: Added alpha: true to make the canvas transparent
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -255,7 +238,6 @@
 
         const geometry = new THREE.TorusKnotGeometry(0.8, 0.25, 200, 22);
         
-        // UPDATED: Replaced standard material with a custom rainbow gradient shader material
         const material = new THREE.ShaderMaterial({
             vertexShader: `
                 varying vec3 vPosition;
@@ -267,7 +249,6 @@
             fragmentShader: `
                 varying vec3 vPosition;
                 void main() {
-                    // UPDATED: Use absolute value of sin to ensure bright colors only
                     float r = abs(sin(vPosition.x * 2.0));
                     float g = abs(sin(vPosition.y * 2.0 + 2.0));
                     float b = abs(sin(vPosition.z * 2.0 + 4.0));
@@ -277,7 +258,7 @@
         });
 
         const molecule = new THREE.Mesh(geometry, material);
-        molecule.position.y = 1.3; // UPDATED: MOVED 3D object further upward
+        molecule.position.y = 1.3;
         scene.add(molecule);
 
         const particlesGeometry = new THREE.BufferGeometry();
@@ -322,7 +303,4 @@
     </script>
 </body>
 </html>
-
-
-
 
